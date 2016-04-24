@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
 
   /* create sender object to handle the accounting */
   /* all the interesting work is done by the Controller */
-  int win_int = 100;
+  int win_int = 50;
   if (window != NULL) {
     stringstream ss(window);
     if (ss >> win_int) {
@@ -145,14 +145,16 @@ int DatagrumpSender::loop( void )
   /* first rule: if the window is open, close it by
      sending more datagrams */
   poller.add_action( Action( socket_, Direction::Out, [&] () {
-	/* Close the window */
-	while ( window_is_open() ) {
-	  send_datagram();
-	}
-	return ResultType::Continue;
+      	/* Close the window */
+      	while ( window_is_open() ) {
+      	  send_datagram();
+      	}
+      	return ResultType::Continue;
       },
       /* We're only interested in this rule when the window is open */
-      [&] () { return window_is_open(); } ) );
+      [&] () { return window_is_open(); }
+      ) // end Action
+    ); // end add_action
 
   /* second rule: if sender receives an ack,
      process it and inform the controller
@@ -172,6 +174,7 @@ int DatagrumpSender::loop( void )
     } else if ( ret.result == PollResult::Timeout ) {
       /* After a timeout, send one datagram to try to get things moving again */
       send_datagram();
+      controller_.timeout_occured();
     }
   }
 }

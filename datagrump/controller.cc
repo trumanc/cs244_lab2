@@ -7,7 +7,7 @@ using namespace std;
 
 /* Default constructor */
 Controller::Controller( const bool debug, int window_size)
-  : debug_( debug ), win_size(window_size)
+  : debug_( debug ), win_size((double)window_size)
 {}
 
 /* Get current window size, in datagrams */
@@ -48,7 +48,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  /* Default: take no action */
+  win_size += 1.0/win_size;
 
   if ( debug_ ) {
     cerr << "At time " << timestamp_ack_received
@@ -59,9 +59,19 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
 }
 
+void Controller::timeout_occured() {
+  if ( debug_ ) {
+    cerr << "Timeout occured. Halving window size from " << win_size
+         << " to " << win_size / 2 << endl;
+  }
+  
+  win_size /= 2;
+  if (win_size < 1.0) win_size = 1.0;
+}
+
 /* How long to wait (in milliseconds) if there are no acks
    before sending one more datagram */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return 50; /* timeout of one second */
 }

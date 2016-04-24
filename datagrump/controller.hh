@@ -10,7 +10,8 @@ class Controller
 private:
   bool debug_; /* Enables debugging output */
   
-  int win_size;
+  
+  double win_size; // in datagrams
 
   /* Add member variables here */
 
@@ -34,6 +35,8 @@ public:
 		     const uint64_t send_timestamp_acked,
 		     const uint64_t recv_timestamp_acked,
 		     const uint64_t timestamp_ack_received );
+         
+  void timeout_occured();
 
   /* How long to wait (in milliseconds) if there are no acks
      before sending one more datagram */
