@@ -1,0 +1,111 @@
+Listening on :::9090
+Fixed window size was set to: 20
+Sending to 100.64.0.1:9090
+
+Window Size: 20
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 3.28 Mbits/s (65.0% utilization)
+95th percentile per-packet queueing delay: 97 ms
+95th percentile signal delay: 277 ms
+Listening on :::9090
+Fixed window size was set to: 40
+Sending to 100.64.0.1:9090
+
+Window Size: 40
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 4.51 Mbits/s (89.5% utilization)
+95th percentile per-packet queueing delay: 191 ms
+95th percentile signal delay: 504 ms
+Listening on :::9090
+Fixed window size was set to: 60
+Sending to 100.64.0.1:9090
+
+Window Size: 60
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 4.91 Mbits/s (97.4% utilization)
+95th percentile per-packet queueing delay: 291 ms
+95th percentile signal delay: 713 ms
+Listening on :::9090
+Fixed window size was set to: 80
+Sending to 100.64.0.1:9090
+
+Window Size: 80
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 4.98 Mbits/s (98.9% utilization)
+95th percentile per-packet queueing delay: 403 ms
+95th percentile signal delay: 896 ms
+Listening on :::9090
+Fixed window size was set to: 100
+Sending to 100.64.0.1:9090
+
+Window Size: 100
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.01 Mbits/s (99.4% utilization)
+95th percentile per-packet queueing delay: 516 ms
+95th percentile signal delay: 1053 ms
+Listening on :::9090
+Fixed window size was set to: 120
+Sending to 100.64.0.1:9090
+
+Window Size: 120
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.02 Mbits/s (99.6% utilization)
+95th percentile per-packet queueing delay: 637 ms
+95th percentile signal delay: 1194 ms
+Listening on :::9090
+Fixed window size was set to: 140
+Sending to 100.64.0.1:9090
+
+Window Size: 140
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.02 Mbits/s (99.6% utilization)
+95th percentile per-packet queueing delay: 759 ms
+95th percentile signal delay: 1338 ms
+Listening on :::9090
+Fixed window size was set to: 160
+Sending to 100.64.0.1:9090
+
+Window Size: 160
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.03 Mbits/s (99.7% utilization)
+95th percentile per-packet queueing delay: 893 ms
+95th percentile signal delay: 1463 ms
+Listening on :::9090
+Fixed window size was set to: 180
+Sending to 100.64.0.1:9090
+
+Window Size: 180
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.03 Mbits/s (99.7% utilization)
+95th percentile per-packet queueing delay: 1039 ms
+95th percentile signal delay: 1609 ms
+Listening on :::9090
+Fixed window size was set to: 200
+Sending to 100.64.0.1:9090
+
+Window Size: 200
+terminate called after throwing an instance of 'unix_error'
+  what():  send: Invalid argument
+Average capacity: 5.04 Mbits/s
+Average throughput: 5.03 Mbits/s (99.8% utilization)
+95th percentile per-packet queueing delay: 1185 ms
+95th percentile signal delay: 1735 ms
+
