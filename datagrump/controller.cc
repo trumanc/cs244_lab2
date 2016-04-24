@@ -6,15 +6,15 @@
 using namespace std;
 
 /* Default constructor */
-Controller::Controller( const bool debug )
-  : debug_( debug )
+Controller::Controller( const bool debug, int window_size)
+  : debug_( debug ), win_size(window_size)
 {}
 
 /* Get current window size, in datagrams */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of 100 outstanding datagrams */
-  unsigned int the_window_size = 50;
+  unsigned int the_window_size = win_size;
 
   if ( debug_ ) {
     cerr << "At time " << timestamp_ms()

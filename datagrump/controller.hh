@@ -9,6 +9,8 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
+  
+  int win_size;
 
   /* Add member variables here */
 
@@ -18,7 +20,7 @@ public:
      the call site as well (in sender.cc) */
 
   /* Default constructor */
-  Controller( const bool debug );
+  Controller( const bool debug, int window_size);
 
   /* Get current window size, in datagrams */
   unsigned int window_size( void );

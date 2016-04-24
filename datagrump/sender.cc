@@ -8,6 +8,9 @@
 #include "controller.hh"
 #include "poller.hh"
 
+#include <assert.h>
+#include <sstream>
+
 using namespace std;
 using namespace PollerShortNames;
 
@@ -17,6 +20,7 @@ class DatagrumpSender
 private:
   UDPSocket socket_;
   Controller controller_; /* your class */
+  
 
   uint64_t sequence_number_; /* next outgoing sequence number */
 
@@ -31,7 +35,7 @@ private:
 
 public:
   DatagrumpSender( const char * const host, const char * const port,
-		   const bool debug );
+		   int window_size, const bool debug );
   int loop( void );
 };
 
@@ -42,30 +46,49 @@ int main( int argc, char *argv[] )
     abort();
   }
 
+  char * window = NULL;
   bool debug = false;
-  if ( argc == 4 and string( argv[ 3 ] ) == "debug" ) {
+  if (argc == 5) {
+    assert(string( argv[ 4 ] ) == "debug" );
     debug = true;
-  } else if ( argc == 3 ) {
-    /* do nothing */
-  } else {
-    cerr << "Usage: " << argv[ 0 ] << " HOST PORT [debug]" << endl;
+    window = argv[3];
+  } else if (argc == 4) {
+    if (string( argv[ 3 ] ) == "debug" ) {
+      debug = true;
+    } else {
+      window = argv[3];
+    }
+  } else if (argc != 3) {
+    cerr << "Usage: " << argv[ 0 ] << " HOST PORT [FIXED_WINDOW_SIZE] [debug]" << endl;
     return EXIT_FAILURE;
   }
 
   /* create sender object to handle the accounting */
   /* all the interesting work is done by the Controller */
-  DatagrumpSender sender( argv[ 1 ], argv[ 2 ], debug );
+  int win_int = 100;
+  if (window != NULL) {
+    stringstream ss(window);
+    if (ss >> win_int) {
+      cerr << "Fixed window size was set to: " << win_int << endl;
+    } else {
+      cerr << "Window size parameter wasn't read correctly. Defaulting to 100" << endl;
+      win_int = 100;
+    }
+  }
+  DatagrumpSender sender( argv[ 1 ], argv[ 2 ], win_int, debug );
   return sender.loop();
 }
 
 DatagrumpSender::DatagrumpSender( const char * const host,
 				  const char * const port,
+				  int window,
 				  const bool debug )
   : socket_(),
-    controller_( debug ),
+    controller_( debug , window),
     sequence_number_( 0 ),
     next_ack_expected_( 0 )
 {
+  
   /* turn on timestamps when socket receives a datagram */
   socket_.set_timestamps();
 
