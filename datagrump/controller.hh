@@ -10,8 +10,14 @@ class Controller
 private:
   bool debug_; /* Enables debugging output */
   
-  
   double win_size; // in datagrams
+  
+  uint64_t lask_ack_timestamp;
+  uint64_t last_super_ack_timestamp;
+  
+  
+  double ack_diff_average = 3;
+  double alpha = 0.25;
 
   /* Add member variables here */
 
