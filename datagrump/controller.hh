@@ -22,6 +22,10 @@ private:
   
   double min_rtt = 100;
   
+  bool panic_mode = false;
+  double saved_rate;
+  uint64_t panic_start_time;
+  
   
   double ack_diff_average = 3;
   double alpha = 0.15;

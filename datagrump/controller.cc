@@ -9,7 +9,7 @@ using namespace std;
 Controller::Controller( const bool debug, int window_size)
 {
    debug_ = debug;
-   win_size = window_size;
+   (void)window_size;
 }
 
 /* Get current window size, in datagrams */
@@ -72,45 +72,41 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     min_rtt = rtt;
   }
   
-  if (rtt > 3 * min_rtt) {
-    target_rate = 1;
+  if (panic_mode && rtt <= min_rtt * 2) {
+    if (timestamp_ack_received - panic_start_time < (min_rtt * 2)) {
+      // False alarm, slow rtt caused by bursty glitch
+      // Reinstate old rate before exiting panic mode
+      if ( debug_ ) {
+        cerr << "Got a fast rtt quickly. Panic mode was a false alarm." << endl;
+      }
+      target_rate = saved_rate;
+    } else {
+      if (debug_) {
+        cerr << "Recovered from panic mode after clearing the queue." << endl;
+      }
+    }
+    panic_mode = false;
   }
   
-  cerr << "ONEPACKRTT, " << send_timestamp_acked << ", "
-       << timestamp_ack_received - send_timestamp_acked << endl;
-
-  if (sequence_number_acked % 20 == 0) {
-    cerr << "SUPERACKDIFF, " << send_timestamp_acked << ", "
-                             << recv_timestamp_acked - last_super_ack_timestamp << endl;
-    last_super_ack_timestamp = recv_timestamp_acked;
+  if (rtt > 2 * min_rtt) {
+    if (!panic_mode) {
+      // Entering panic mode
+      saved_rate = target_rate;
+      panic_start_time = timestamp_ack_received;
+      panic_mode = true;
+      if (debug_) {
+        cerr << "Got slow rtt of " << rtt << ". Entering panic mode." << endl;
+      }
+      
+      target_rate *= 0.5;
+    }
   }
   
-  ack_diff_average  =  (1 - alpha)*ack_diff_average +
-                       (recv_timestamp_acked - lask_ack_timestamp)*alpha;
-                       
-  cerr << "ACKDIFF, " << send_timestamp_acked << ", "
-                      << recv_timestamp_acked - lask_ack_timestamp << ", "
-                      << ack_diff_average 
-                      << endl;
-                       
-  
+ 
   lask_ack_timestamp = recv_timestamp_acked;                     
   
-  uint64_t curr_rtt = timestamp_ack_received - send_timestamp_acked;
-  //cerr << timestamp_ack_received << ", " << curr_rtt << endl;
   target_rate += 0.1 / target_rate;
-  win_size = min(win_size, 60.0); // TODO: Not sure this is helping much
-  if (curr_rtt > 100) { // TODO: Play with this trigger
-    
-    if ( debug_ || true) {
-      cerr << "Slow rtt. MD-ing window size from " << win_size << endl;
-    }
-    
-    //win_size *= (1.0/5.0);
-    //if (win_size < 1.0) win_size = 1.0;
-    // NUKE THE WINDOW, CLEAR THE QUEUE
-    win_size = 1;
-  }
+
   if ( debug_ ) {
     cerr << "At time " << timestamp_ack_received
 	 << " received ack for datagram " << sequence_number_acked
@@ -128,5 +124,5 @@ void Controller::timeout_occured() {
 //TIMEOUT TIME XXX
 unsigned int Controller::timeout_ms( void )
 {
-  return 50; /* timeout of one second */
+  return min_rtt; 
 }
