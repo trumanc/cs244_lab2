@@ -15,9 +15,16 @@ private:
   uint64_t lask_ack_timestamp;
   uint64_t last_super_ack_timestamp;
   
+  uint64_t last_sent_time;
+  bool sent_is_valid = false;
+  
+  double target_rate = 1; //Mbps
+  
+  double min_rtt = 100;
+  
   
   double ack_diff_average = 3;
-  double alpha = 0.25;
+  double alpha = 0.15;
 
   /* Add member variables here */
 
@@ -31,6 +38,8 @@ public:
 
   /* Get current window size, in datagrams */
   unsigned int window_size( void );
+  
+  bool should_send_packet( void );
 
   /* A datagram was sent */
   void datagram_was_sent( const uint64_t sequence_number,

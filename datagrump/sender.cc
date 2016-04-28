@@ -31,7 +31,8 @@ private:
 
   void send_datagram( void );
   void got_ack( const uint64_t timestamp, const ContestMessage & msg );
-  bool window_is_open( void );
+  bool should_send_packet( void );
+  bool window_is_open( void ) ;
 
 public:
   DatagrumpSender( const char * const host, const char * const port,
@@ -130,6 +131,11 @@ void DatagrumpSender::send_datagram( void )
   /* Inform congestion controller */
   controller_.datagram_was_sent( cm.header.sequence_number,
 				 cm.header.send_timestamp );
+}
+
+bool DatagrumpSender::should_send_packet( void )
+{
+  return controller_.should_send_packet();
 }
 
 bool DatagrumpSender::window_is_open( void )
