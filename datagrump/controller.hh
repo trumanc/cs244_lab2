@@ -10,27 +10,14 @@ class Controller
 private:
   bool debug_; /* Enables debugging output */
   
-  double win_size; // in datagrams
+  double target_rate; //Mbps
   
-  uint64_t lask_ack_timestamp;
-  uint64_t last_super_ack_timestamp;
+  // This value shrinks as soon as we see an rtt less than it.
+  double min_rtt;
   
-  uint64_t last_sent_time;
-  bool sent_is_valid = false;
-  
-  double target_rate = 1; //Mbps
-  
-  double min_rtt = 100;
-  
-  bool panic_mode = false;
+  bool panic_mode;
   double saved_rate;
   uint64_t panic_start_time;
-  
-  
-  double ack_diff_average = 3;
-  double alpha = 0.15;
-
-  /* Add member variables here */
 
 public:
   /* Public interface for the congestion controller */
@@ -38,7 +25,7 @@ public:
      the call site as well (in sender.cc) */
 
   /* Default constructor */
-  Controller( const bool debug, int window_size);
+  Controller( const bool debug);
 
   /* Get current window size, in datagrams */
   unsigned int window_size( void );

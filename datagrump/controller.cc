@@ -6,24 +6,34 @@
 using namespace std;
 
 /* Default constructor */
-Controller::Controller( const bool debug, int window_size)
-{
-   debug_ = debug;
-   (void)window_size;
-}
+Controller::Controller( const bool debug) :
+  debug_(debug),
+  target_rate(1.0), // 1 Mbps starting rate
+  min_rtt(100000), // this value quickly shrinks
+  panic_mode(false),
+  saved_rate(1.0),
+  panic_start_time(0)
+{}
 
 /* Get current window size, in datagrams */
 unsigned int Controller::window_size( void )
 {
-  /* Default: fixed window size of 100 outstanding datagrams */
+  /* Our target window size is calculated based on an idealized
+   * badnwidth-delay product. We have a target rate that we want
+   * to achieve, then multiply it by the minimum rtt we've seen,
+   * since that indicates the delay we are trying to acheive.
+   * The 15 is to convert from Mb/s and ms and bits into a 
+   * window size in packets.
+   */
   unsigned int the_window_size = target_rate * min_rtt / 15.0;
 
   if ( debug_ ) {
-    //cerr << "At time " << timestamp_ms()
-	 //<< " window size is " << the_window_size << endl;
+    cerr << "At time " << timestamp_ms()
+	       << " window size is " << the_window_size << endl;
   }
 
-  return the_window_size;
+  // Should always have at least one packet in flight
+  return the_window_size > 0 ? the_window_size : 1;
 }
 
 /* A datagram was sent */
@@ -33,27 +43,10 @@ void Controller::datagram_was_sent( const uint64_t sequence_number,
                                     /* in milliseconds */
 {
   /* Default: take no action */
-  last_sent_time = timestamp_ms();
-  sent_is_valid = true;
-
   if ( debug_ ) {
     cerr << "At time " << send_timestamp
 	 << " sent datagram " << sequence_number << endl;
   }
-}
-
-bool Controller::should_send_packet() {
-  throw false;
-  uint64_t currtime = timestamp_ms();
-  
-  // PACKET SEND RATE XXX
-  if (currtime - last_sent_time >= (10.0 /target_rate)) {
-    cerr << "Sending packet @@@ prev: " << last_sent_time << ", curr: " << currtime << endl;
-    // Send a packet every 5 ms
-    return true;
-  }
-  cerr << "Trying too soon @@@: " << last_sent_time << ", " << currtime << endl;
-  return false;
 }
 
 /* An ack was received */
@@ -68,9 +61,14 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
   int rtt = timestamp_ack_received - send_timestamp_acked;
   
+  /* Make sure our globally min rtt is accurate. In a real world scenario
+   * where the min rtt changes as you move around (which isn't true in this
+   * test case), I would slowly increment the min_rtt so that it eventually
+   * ourgrew any old min_rtt that was no longer valid */
   if (rtt < min_rtt) {
     min_rtt = rtt;
   }
+  
   
   if (panic_mode && rtt <= min_rtt * 2) {
     if (timestamp_ack_received - panic_start_time < (min_rtt * 2)) {
@@ -102,9 +100,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
     }
   }
   
- 
-  lask_ack_timestamp = recv_timestamp_acked;                     
-  
+  // Slowly grow your target rate if all is well
   target_rate += 0.1 / target_rate;
 
   if ( debug_ ) {
@@ -116,12 +112,9 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
 }
 
-void Controller::timeout_occured() {
-}
-
 /* How long to wait (in milliseconds) if there are no acks
-   before sending one more datagram */
-//TIMEOUT TIME XXX
+   before sending one more datagram. This should only occur
+   if the line has gone completely dead. */
 unsigned int Controller::timeout_ms( void )
 {
   return min_rtt; 

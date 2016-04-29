@@ -8,9 +8,6 @@
 #include "controller.hh"
 #include "poller.hh"
 
-#include <assert.h>
-#include <sstream>
-
 using namespace std;
 using namespace PollerShortNames;
 
@@ -20,7 +17,6 @@ class DatagrumpSender
 private:
   UDPSocket socket_;
   Controller controller_; /* your class */
-  
 
   uint64_t sequence_number_; /* next outgoing sequence number */
 
@@ -31,12 +27,11 @@ private:
 
   void send_datagram( void );
   void got_ack( const uint64_t timestamp, const ContestMessage & msg );
-  bool should_send_packet( void );
-  bool window_is_open( void ) ;
+  bool window_is_open( void );
 
 public:
   DatagrumpSender( const char * const host, const char * const port,
-		   int window_size, const bool debug );
+		   const bool debug );
   int loop( void );
 };
 
@@ -47,49 +42,30 @@ int main( int argc, char *argv[] )
     abort();
   }
 
-  char * window = NULL;
   bool debug = false;
-  if (argc == 5) {
-    assert(string( argv[ 4 ] ) == "debug" );
+  if ( argc == 4 and string( argv[ 3 ] ) == "debug" ) {
     debug = true;
-    window = argv[3];
-  } else if (argc == 4) {
-    if (string( argv[ 3 ] ) == "debug" ) {
-      debug = true;
-    } else {
-      window = argv[3];
-    }
-  } else if (argc != 3) {
-    cerr << "Usage: " << argv[ 0 ] << " HOST PORT [FIXED_WINDOW_SIZE] [debug]" << endl;
+  } else if ( argc == 3 ) {
+    /* do nothing */
+  } else {
+    cerr << "Usage: " << argv[ 0 ] << " HOST PORT [debug]" << endl;
     return EXIT_FAILURE;
   }
 
   /* create sender object to handle the accounting */
   /* all the interesting work is done by the Controller */
-  int win_int = 50;
-  if (window != NULL) {
-    stringstream ss(window);
-    if (ss >> win_int) {
-      cerr << "Fixed window size was set to: " << win_int << endl;
-    } else {
-      cerr << "Window size parameter wasn't read correctly. Defaulting to 100" << endl;
-      win_int = 100;
-    }
-  }
-  DatagrumpSender sender( argv[ 1 ], argv[ 2 ], win_int, debug );
+  DatagrumpSender sender( argv[ 1 ], argv[ 2 ], debug );
   return sender.loop();
 }
 
 DatagrumpSender::DatagrumpSender( const char * const host,
 				  const char * const port,
-				  int window,
 				  const bool debug )
   : socket_(),
-    controller_( debug , window),
+    controller_( debug ),
     sequence_number_( 0 ),
     next_ack_expected_( 0 )
 {
-  
   /* turn on timestamps when socket receives a datagram */
   socket_.set_timestamps();
 
@@ -133,11 +109,6 @@ void DatagrumpSender::send_datagram( void )
 				 cm.header.send_timestamp );
 }
 
-bool DatagrumpSender::should_send_packet( void )
-{
-  return controller_.should_send_packet();
-}
-
 bool DatagrumpSender::window_is_open( void )
 {
   return sequence_number_ - next_ack_expected_ < controller_.window_size();
@@ -151,16 +122,14 @@ int DatagrumpSender::loop( void )
   /* first rule: if the window is open, close it by
      sending more datagrams */
   poller.add_action( Action( socket_, Direction::Out, [&] () {
-      	/* Close the window */
-      	while ( window_is_open() ) {
-      	  send_datagram();
-      	}
-      	return ResultType::Continue;
+	/* Close the window */
+	while ( window_is_open() ) {
+	  send_datagram();
+	}
+	return ResultType::Continue;
       },
       /* We're only interested in this rule when the window is open */
-      [&] () { return window_is_open(); }
-      ) // end Action
-    ); // end add_action
+      [&] () { return window_is_open(); } ) );
 
   /* second rule: if sender receives an ack,
      process it and inform the controller
@@ -180,7 +149,6 @@ int DatagrumpSender::loop( void )
     } else if ( ret.result == PollResult::Timeout ) {
       /* After a timeout, send one datagram to try to get things moving again */
       send_datagram();
-      controller_.timeout_occured();
     }
   }
 }
